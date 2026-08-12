@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>DMOVIES — Chagua Movie Yako</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--green:#1D9E75;--green-light:#E1F5EE;--green-dark:#0F6E56;--gold:#FFD700;--gold2:#FFA500;--bg:#0d0d0d;--surface:#1a1a1a;--surface2:#242424;--border:#2e2e2e;--text:#f0f0ee;--muted:#888884;--radius:14px;--radius-sm:8px;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;padding-bottom:120px;}
+.header{background:linear-gradient(135deg,#0d0d0d,#1a1200);padding:1.25rem 1rem 1rem;text-align:center;border-bottom:1px solid #2a2000;}
+.logo{font-size:28px;font-weight:900;background:linear-gradient(90deg,#FFD700,#FFA500);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-1px;}
+.tagline{font-size:12px;color:var(--muted);margin-top:4px;letter-spacing:1px;}
+.steps{display:flex;justify-content:center;margin:1rem;background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;}
+.step{flex:1;padding:10px 4px;text-align:center;font-size:10px;color:var(--muted);border-right:1px solid var(--border);}
+.step:last-child{border-right:none;}
+.step.active{background:linear-gradient(135deg,#332800,#1a1200);color:var(--gold);}
+.step-num{display:block;font-size:16px;margin-bottom:2px;}
+.page{display:none;padding:1rem;max-width:600px;margin:0 auto;}
+.page.active{display:block;}
+.movies-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.movie-card{background:var(--surface);border:2px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:all 0.2s;position:relative;}
+.movie-card.selected{border-color:var(--gold);background:#1a1200;}
+.movie-card .check{position:absolute;top:8px;right:8px;width:22px;height:22px;background:var(--gold);border-radius:50%;display:none;align-items:center;justify-content:center;font-size:12px;color:#000;font-weight:700;}
+.movie-card.selected .check{display:flex;}
+.movie-poster{width:100%;height:130px;display:flex;align-items:center;justify-content:center;font-size:44px;background:linear-gradient(135deg,#1a1a1a,#242424);}
+.movie-info{padding:8px 10px;}
+.movie-title{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.movie-meta{font-size:10px;color:var(--muted);margin-top:2px;}
+.genre-badge{display:inline-block;font-size:9px;padding:2px 6px;border-radius:10px;margin-top:4px;}
+.g-action{background:#FAECE7;color:#993C1D;}.g-romance{background:#FBEAF0;color:#993556;}.g-comedy{background:#FAEEDA;color:#854F0B;}.g-bongo{background:#E1F5EE;color:#0F6E56;}.g-family{background:#EEEDFE;color:#3C3489;}
+.filter-row{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:4px;scrollbar-width:none;}
+.filter-row::-webkit-scrollbar{display:none;}
+.filter-btn{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-size:12px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.filter-btn.active{background:#332800;border-color:var(--gold);color:var(--gold);}
+.form-section{margin-bottom:16px;}
+.form-label{font-size:12px;color:var(--muted);margin-bottom:6px;display:block;}
+.form-input{width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;color:var(--text);background:var(--surface2);}
+.form-input:focus{outline:none;border-color:var(--gold);}
+textarea.form-input{resize:vertical;font-family:inherit;line-height:1.5;}
+select.form-input option{background:#1a1a1a;}
+.time-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.time-card{padding:12px;border:2px solid var(--border);border-radius:var(--radius-sm);text-align:center;cursor:pointer;background:var(--surface2);transition:all 0.15s;}
+.time-card.selected{border-color:var(--gold);background:#1a1200;}
+.time-card .time-label{font-size:15px;font-weight:700;color:var(--text);}
+.time-card .time-sub{font-size:10px;color:var(--muted);margin-top:2px;}
+.pkg-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.pkg-card{padding:12px;border:2px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;background:var(--surface2);transition:all 0.15s;}
+.pkg-card.selected{border-color:var(--gold);background:#1a1200;}
+.pkg-card.best{border-color:#3a2800;}
+.pkg-name{font-size:13px;font-weight:700;color:var(--text);}
+.pkg-price{font-size:18px;font-weight:800;color:var(--gold);margin:4px 0;}
+.pkg-price small{font-size:11px;color:var(--muted);font-weight:400;}
+.pkg-feat{font-size:10px;color:var(--muted);line-height:1.7;}
+.best-tag{font-size:9px;background:#332800;color:var(--gold);padding:2px 6px;border-radius:10px;display:inline-block;margin-bottom:4px;}
+.summary-card{background:linear-gradient(135deg,#1a1200,#2a1800);border:1px solid #3a2800;border-radius:var(--radius);padding:1.25rem;margin-bottom:12px;}
+.summary-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,215,0,0.08);font-size:13px;}
+.summary-row:last-child{border-bottom:none;padding-top:10px;margin-top:4px;}
+.summary-row strong{color:var(--gold);font-size:15px;}
+.summary-movie{display:flex;align-items:center;gap:8px;padding:8px;background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:6px;}
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:12px 1rem;display:flex;align-items:center;gap:10px;z-index:100;}
+.selected-count{font-size:12px;color:var(--muted);flex:1;}
+.selected-count strong{color:var(--gold);font-size:14px;}
+.next-btn{padding:12px 24px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.next-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.success-screen{text-align:center;padding:2rem 1rem;}
+.success-icon{font-size:64px;margin-bottom:1rem;}
+.success-title{font-size:22px;font-weight:800;color:var(--gold);margin-bottom:8px;}
+.success-sub{font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:1.5rem;}
+.order-ref{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;font-size:13px;margin-bottom:1rem;}
+.ref-num{font-size:22px;font-weight:800;color:var(--gold);letter-spacing:2px;display:block;margin-top:4px;}
+.whatsapp-btn{display:block;width:100%;padding:14px;background:#25D366;color:white;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;cursor:pointer;text-decoration:none;text-align:center;margin-bottom:8px;}
+.restart-btn{display:block;width:100%;padding:12px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;cursor:pointer;text-align:center;}
+.card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:1rem;margin-bottom:12px;}
+.card-title{font-size:13px;font-weight:600;margin-bottom:10px;color:var(--text);}
+.empty{text-align:center;padding:2rem;color:var(--muted);font-size:13px;}
+.loading{text-align:center;padding:2rem;color:var(--muted);font-size:13px;animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="logo">DMOVIES</div>
+  <div class="tagline">🎬 Chagua movie yako kabla ya kufika</div>
+</div>
+<div class="steps">
+  <div class="step active" id="step1"><span class="step-num">🎬</span>Movie</div>
+  <div class="step" id="step2"><span class="step-num">🕐</span>Saa</div>
+  <div class="step" id="step3"><span class="step-num">💰</span>Pakiti</div>
+  <div class="step" id="step4"><span class="step-num">👤</span>Taarifa</div>
+  <div class="step" id="step5"><span class="step-num">✅</span>Malipo</div>
+</div>
+
+<!-- STEP 1 -->
+<div class="page active" id="page1">
+  <div class="card">
+    <div class="card-title">🎬 Chagua Movie (unaweza chagua zaidi ya moja)</div>
+    <div class="filter-row" id="genre-filters">
+      <button class="filter-btn active" onclick="filterGenre('',this)">Zote</button>
+      <button class="filter-btn" onclick="filterGenre('Action',this)">💥 Action</button>
+      <button class="filter-btn" onclick="filterGenre('Romance',this)">❤️ Romance</button>
+      <button class="filter-btn" onclick="filterGenre('Comedy',this)">😂 Comedy</button>
+      <button class="filter-btn" onclick="filterGenre('Bongo',this)">🇹🇿 Bongo</button>
+      <button class="filter-btn" onclick="filterGenre('Family',this)">👨‍👩‍👧 Family</button>
+    </div>
+    <div id="movies-grid"><div class="loading">⏳ Inapakia movies...</div></div>
+  </div>
+</div>
+
+<!-- STEP 2 -->
+<div class="page" id="page2">
+  <div class="card">
+    <div class="card-title">🕐 Chagua Saa ya Onyesho</div>
+    <div class="time-grid">
+      <div class="time-card" onclick="selectTime('10:00 AM',this)"><div class="time-label">10:00 AM</div><div class="time-sub">Asubuhi</div></div>
+      <div class="time-card" onclick="selectTime('2:00 PM',this)"><div class="time-label">2:00 PM</div><div class="time-sub">Mchana</div></div>
+      <div class="time-card" onclick="selectTime('6:00 PM',this)"><div class="time-label">6:00 PM</div><div class="time-sub">Jioni</div></div>
+      <div class="time-card" onclick="selectTime('8:00 PM',this)"><div class="time-label">8:00 PM</div><div class="time-sub">Usiku</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 3 -->
+<div class="page" id="page3">
+  <div class="card">
+    <div class="card-title">💰 Chagua Pakiti</div>
+    <div class="pkg-grid">
+      <div class="pkg-card" onclick="selectPkg('Moja',500,this)"><div class="pkg-name">Pakiti Moja</div><div class="pkg-price">500 <small>Tsh</small></div><div class="pkg-feat">✓ Movie 1<br>✓ Bora kwa mgeni</div></div>
+      <div class="pkg-card best" onclick="selectPkg('Tatu',1200,this)"><div class="best-tag">🔥 Maarufu</div><div class="pkg-name">Pakiti Tatu</div><div class="pkg-price">1,200 <small>Tsh</small></div><div class="pkg-feat">✓ Movies 3<br>✓ Okoa 300 Tsh</div></div>
+      <div class="pkg-card" onclick="selectPkg('Wiki',3000,this)"><div class="pkg-name">Pakiti Wiki</div><div class="pkg-price">3,000 <small>Tsh</small></div><div class="pkg-feat">✓ Movies 10/wiki<br>✓ Familia nzima</div></div>
+      <div class="pkg-card" onclick="selectPkg('Mwezi',8000,this)"><div class="pkg-name">Pakiti Mwezi</div><div class="pkg-price">8,000 <small>Tsh</small></div><div class="pkg-feat">✓ Bila kikomo<br>✓ VIP priority</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 4 -->
+<div class="page" id="page4">
+  <div class="card">
+    <div class="card-title">👤 Taarifa Zako</div>
+    <div class="form-section"><label class="form-label">Jina lako *</label><input class="form-input" id="c-jina" type="text" placeholder="Jina lako kamili"></div>
+    <div class="form-section"><label class="form-label">Namba ya Simu *</label><input class="form-input" id="c-simu" type="tel" placeholder="0712 345 678"></div>
+    <div class="form-section"><label class="form-label">Membership Number (kama una)</label><input class="form-input" id="c-member" type="text" placeholder="DM0001 (si lazima)"></div>
+    <div class="form-section"><label class="form-label">Njia ya Malipo</label>
+      <select class="form-input" id="c-malipo"><option value="M-Pesa">📱 M-Pesa</option><option value="Airtel Money">📱 Airtel Money</option><option value="Taslimu">💵 Taslimu (Kwa Kibanda)</option></select>
+    </div>
+    <div class="form-section">
+      <label class="form-label">📝 Maelezo / Maelekezo ya Ziada (si lazima)</label>
+      <textarea class="form-input" id="c-notes" rows="3" placeholder="Mfano: Nataka Season 2 Episode 5 ya series fulani, au maelekezo mengine kwa DMOVIES..."></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 5 -->
+<div class="page" id="page5">
+  <div class="card"><div class="card-title">📋 Hakiki Order Yako</div><div id="order-summary"></div></div>
+  <button onclick="submitOrder()" id="submit-btn" style="width:100%;padding:14px;background:linear-gradient(135deg,#FFD700,#FFA500);color:#000;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:800;cursor:pointer;">✅ Thibitisha Order</button>
+</div>
+
+<!-- SUCCESS -->
+<div class="page" id="page-success">
+  <div class="success-screen">
+    <div class="success-icon">🎉</div>
+    <div class="success-title">Order Imepokewa!</div>
+    <div class="success-sub">Asante! Order yako imetumwa kwa DMOVIES.<br>Fika wakati wa onyesho lako — utahudumia haraka.</div>
+    <div class="order-ref"><div style="font-size:12px;color:var(--muted);">Namba ya Order yako</div><span class="ref-num" id="order-ref-num">—</span></div>
+    <div id="order-details-success" style="margin-bottom:16px;"></div>
+    <a id="whatsapp-confirm" href="#" class="whatsapp-btn" target="_blank">📲 Thibisha kwa WhatsApp</a>
+    <div class="restart-btn" onclick="restartOrder()">🔄 Fanya Order Nyingine</div>
+  </div>
+</div>
+
+<div class="bottom-bar" id="bottom-bar">
+  <div class="selected-count" id="bottom-info">Chagua movie angalau moja</div>
+  <button class="next-btn" id="next-btn" onclick="nextStep()" disabled>Endelea →</button>
+</div>
+
+<script>
+const API = '/api';
+const OWNER_WA = '255712345678'; // BADILISHA NA NAMBA YAKO
+const GENRE_CLASS={Action:'g-action',Romance:'g-romance',Comedy:'g-comedy',Bongo:'g-bongo',Family:'g-family'};
+const GENRE_EMOJI={Action:'💥',Romance:'❤️',Comedy:'😂',Bongo:'🇹🇿',Family:'👨‍👩‍👧'};
+
+let allMovies=[], selectedMovies=[], selectedTime='', selectedPkg='', selectedPkgPrice=0, currentStep=1, activeGenre='';
+
+async function loadMovies(){
+  try{
+    const r=await fetch(API+'/movies');
+    const d=await r.json();
+    allMovies=d.movies||[];
+    renderMovieGrid('');
+  }catch(e){
+    document.getElementById('movies-grid').innerHTML='<div class="empty">⚠️ Tatizo la mtandao. Jaribu tena.</div>';
+  }
+}
+
+function renderMovieGrid(genre){
+  const filtered=genre?allMovies.filter(m=>m.genre===genre):allMovies;
+  const grid=document.getElementById('movies-grid');
+  if(!filtered.length){grid.innerHTML='<div class="empty">Hakuna movies</div>';return;}
+  grid.innerHTML=filtered.map(m=>`
+    <div class="movie-card ${selectedMovies.find(s=>s._id===m._id)?'selected':''}" onclick="toggleMovie('${m._id}')">
+      <div class="check">✓</div>
+      <div class="movie-poster">${m.emoji||GENRE_EMOJI[m.genre]||'🎬'}</div>
+      <div class="movie-info">
+        <div class="movie-title">${m.title}</div>
+        <div class="movie-meta">${m.year}</div>
+        <span class="genre-badge ${GENRE_CLASS[m.genre]||'g-action'}">${m.genre}</span>
+      </div>
+    </div>`).join('');
+}
+
+function filterGenre(genre,btn){
+  activeGenre=genre;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderMovieGrid(genre);
+}
+
+function toggleMovie(id){
+  const movie=allMovies.find(m=>m._id===id);
+  if(!movie)return;
+  const idx=selectedMovies.findIndex(m=>m._id===id);
+  if(idx>=0) selectedMovies.splice(idx,1); else selectedMovies.push(movie);
+  renderMovieGrid(activeGenre);
+  updateBottomBar();
+}
+
+function selectTime(t,el){
+  selectedTime=t;
+  document.querySelectorAll('.time-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  updateBottomBar();
+}
+
+function selectPkg(name,price,el){
+  selectedPkg=name;selectedPkgPrice=price;
+  document.querySelectorAll('.pkg-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  updateBottomBar();
+}
+
+function nextStep(){
+  if(currentStep===1&&!selectedMovies.length){alert('Tafadhali chagua movie angalau moja');return;}
+  if(currentStep===2&&!selectedTime){alert('Tafadhali chagua saa ya onyesho');return;}
+  if(currentStep===3&&!selectedPkg){alert('Tafadhali chagua pakiti');return;}
+  if(currentStep===4){
+    if(!document.getElementById('c-jina').value.trim()||!document.getElementById('c-simu').value.trim()){alert('Tafadhali jaza jina na simu yako');return;}
+    buildSummary();
+  }
+  if(currentStep===5)return;
+  currentStep++;
+  showStep(currentStep);
+}
+
+function showStep(n){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.step').forEach((s,i)=>s.classList.toggle('active',i+1<=n));
+  document.getElementById('page'+n).classList.add('active');
+  updateBottomBar();
+  window.scrollTo(0,0);
+}
+
+function updateBottomBar(){
+  const info=document.getElementById('bottom-info');
+  const btn=document.getElementById('next-btn');
+  const bar=document.getElementById('bottom-bar');
+  bar.style.display='flex';
+  if(currentStep===1){info.innerHTML=selectedMovies.length?`<strong>${selectedMovies.length}</strong> movie zilizochaguliwa`:'Chagua movie angalau moja';btn.disabled=!selectedMovies.length;btn.textContent='Endelea →';}
+  else if(currentStep===2){info.innerHTML=selectedTime?`Saa: <strong>${selectedTime}</strong>`:'Chagua saa ya onyesho';btn.disabled=!selectedTime;btn.textContent='Endelea →';}
+  else if(currentStep===3){info.innerHTML=selectedPkg?`Pakiti: <strong>${selectedPkg} — ${selectedPkgPrice.toLocaleString()} Tsh</strong>`:'Chagua pakiti';btn.disabled=!selectedPkg;btn.textContent='Endelea →';}
+  else if(currentStep===4){info.innerHTML='Jaza taarifa zako';btn.disabled=false;btn.textContent='Angalia Order →';}
+  else if(currentStep===5){bar.style.display='none';}
+}
+
+function buildSummary(){
+  const jina=document.getElementById('c-jina').value.trim();
+  const simu=document.getElementById('c-simu').value.trim();
+  const malipo=document.getElementById('c-malipo').value;
+  const member=document.getElementById('c-member').value.trim();
+  const notes=document.getElementById('c-notes').value.trim();
+  document.getElementById('order-summary').innerHTML=`
+    <div style="margin-bottom:10px;">${selectedMovies.map(m=>`
+      <div class="summary-movie"><span style="font-size:24px;">${m.emoji||'🎬'}</span>
+        <div><div style="font-size:12px;font-weight:600;">${m.title}</div><div style="font-size:10px;color:var(--muted);">${m.genre} · ${m.year}</div></div></div>`).join('')}
+    </div>
+    <div class="summary-card">
+      <div class="summary-row"><span>👤 Jina</span><span>${jina}</span></div>
+      <div class="summary-row"><span>📱 Simu</span><span>${simu}</span></div>
+      <div class="summary-row"><span>🕐 Saa</span><span>${selectedTime}</span></div>
+      <div class="summary-row"><span>📦 Pakiti</span><span>${selectedPkg}</span></div>
+      <div class="summary-row"><span>💳 Malipo</span><span>${malipo}</span></div>
+      ${member?`<div class="summary-row"><span>🏅 Member</span><span>${member}</span></div>`:''}
+      <div class="summary-row"><span>💰 Jumla</span><strong>${selectedPkgPrice.toLocaleString()} Tsh</strong></div>
+    </div>
+    ${notes?`<div class="summary-card" style="margin-top:8px;"><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">📝 Maelezo Yako</div><div style="font-size:13px;line-height:1.6;">${notes}</div></div>`:''}`;
+}
+
+async function submitOrder(){
+  const jina=document.getElementById('c-jina').value.trim();
+  const simu=document.getElementById('c-simu').value.trim();
+  const malipo=document.getElementById('c-malipo').value;
+  const member=document.getElementById('c-member').value.trim();
+  const notes=document.getElementById('c-notes').value.trim();
+  const btn=document.getElementById('submit-btn');
+  btn.textContent='⏳ Inatuma...';btn.disabled=true;
+  try{
+    const now=new Date();
+    const r=await fetch(API+'/orders',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        jina,simu,malipo,member,notes,
+        movies:selectedMovies,
+        saa:selectedTime,
+        pakiti:selectedPkg,
+        bei:selectedPkgPrice,
+        wakati:now.toLocaleTimeString('sw',{hour:'2-digit',minute:'2-digit'}),
+        tarehe:now.toLocaleDateString('sw'),
+      })
+    });
+    const d=await r.json();
+    const ref=d.order.ref;
+    const movieNames=selectedMovies.map(m=>m.title).join(', ');
+    const waMsg=`🎬 *ORDER MPYA — DMOVIES*\n\n📋 Ref: *${ref}*\n👤 Jina: ${jina}\n📱 Simu: ${simu}\n🎬 Movies: ${movieNames}\n🕐 Saa: ${selectedTime}\n📦 Pakiti: ${selectedPkg}\n💰 Bei: ${selectedPkgPrice.toLocaleString()} Tsh\n💳 Malipo: ${malipo}\n${member?'🏅 Member: '+member+'\n':''}${notes?'\n📝 Maelezo:\n'+notes+'\n':''}\n✅ Mteja anakuja!`;
+    document.getElementById('whatsapp-confirm').href=`https://wa.me/${OWNER_WA}?text=${encodeURIComponent(waMsg)}`;
+    document.getElementById('order-ref-num').textContent=ref;
+    document.getElementById('order-details-success').innerHTML=`
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:12px;text-align:left;">
+        <div style="color:var(--muted);margin-bottom:6px;">Maelezo ya Order</div>
+        <div style="line-height:2;">${selectedMovies.map(m=>m.emoji+' '+m.title).join('<br>')}<br>🕐 ${selectedTime} · 📦 ${selectedPkg} · 💰 ${selectedPkgPrice.toLocaleString()} Tsh</div>
+      </div>`;
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById('page-success').classList.add('active');
+    document.getElementById('bottom-bar').style.display='none';
+    document.querySelectorAll('.step').forEach(s=>s.classList.add('active'));
+    window.scrollTo(0,0);
+  }catch(e){
+    btn.textContent='✅ Thibitisha Order';btn.disabled=false;
+    alert('⚠️ Tatizo la mtandao. Tafadhali jaribu tena.');
+  }
+}
+
+function restartOrder(){
+  selectedMovies=[];selectedTime='';selectedPkg='';selectedPkgPrice=0;currentStep=1;
+  document.getElementById('c-jina').value='';document.getElementById('c-simu').value='';
+  document.getElementById('c-member').value='';document.getElementById('c-notes').value='';
+  document.querySelectorAll('.time-card,.pkg-card').forEach(c=>c.classList.remove('selected'));
+  document.querySelectorAll('.step').forEach((s,i)=>s.classList.toggle('active',i===0));
+  document.getElementById('bottom-bar').style.display='flex';
+  renderMovieGrid('');showStep(1);
+}
+
+loadMovies();
+updateBottomBar();
+</script>
+</body>
+</html>
