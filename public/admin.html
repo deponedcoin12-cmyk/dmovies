@@ -1,1 +1,547 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DMOVIES — Admin</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--green:#1D9E75;--green-light:#E1F5EE;--green-dark:#0F6E56;--gold:#FFD700;--gold2:#FFA500;--purple:#534AB7;--purple-light:#EEEDFE;--purple-dark:#3C3489;--amber-light:#FAEEDA;--amber-dark:#854F0B;--coral-light:#FAECE7;--coral-dark:#993C1D;--pink-light:#FBEAF0;--pink-dark:#993556;--bg:#0d0d0d;--surface:#1a1a1a;--surface2:#242424;--border:#2e2e2e;--text:#f0f0ee;--muted:#888884;--radius:12px;--radius-sm:8px;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;}
+.header{background:linear-gradient(135deg,#0d0d0d,#1a1200);padding:1rem 1.25rem;display:flex;align-items:center;gap:12px;border-bottom:1px solid #2a2000;position:sticky;top:0;z-index:100;}
+.logo{font-size:20px;font-weight:900;background:linear-gradient(90deg,#FFD700,#FFA500);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.logo span{font-size:10px;display:block;color:var(--muted);font-weight:400;letter-spacing:2px;-webkit-text-fill-color:var(--muted);}
+.tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{flex:1;padding:10px 6px;font-size:11px;font-weight:500;color:var(--muted);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;min-width:60px;position:relative;}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+.tab-icon{display:block;font-size:16px;margin-bottom:2px;}
+.tab-badge{position:absolute;top:6px;right:4px;background:#E24B4A;color:white;font-size:9px;font-weight:700;padding:1px 5px;border-radius:10px;display:none;}
+.page{display:none;padding:1rem;max-width:700px;margin:0 auto;}
+.page.active{display:block;}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem;}
+.stat{background:var(--surface);border-radius:var(--radius-sm);padding:10px;text-align:center;border:1px solid var(--border);}
+.stat-num{font-size:20px;font-weight:700;color:var(--gold);}
+.stat-lbl{font-size:10px;color:var(--muted);margin-top:2px;}
+.card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:1rem;margin-bottom:12px;}
+.card-title{font-size:13px;font-weight:600;margin-bottom:10px;color:var(--text);display:flex;align-items:center;gap:6px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.form-grid.three{grid-template-columns:1fr 1fr 1fr;}
+label{font-size:11px;color:var(--muted);display:block;margin-bottom:3px;}
+input,select{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;color:var(--text);background:var(--surface2);}
+input:focus,select:focus{outline:none;border-color:var(--gold);}
+select option{background:#1a1a1a;}
+.btn{width:100%;padding:10px;background:var(--green);color:white;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;margin-top:4px;}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;}
+.btn-outline{background:none;border:1px solid var(--border);color:var(--text);}
+.btn-danger{background:#E24B4A;}
+.btn-sm{padding:5px 12px;font-size:11px;width:auto;margin-top:0;}
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500;}
+.b-action{background:var(--coral-light);color:var(--coral-dark);}.b-romance{background:var(--pink-light);color:var(--pink-dark);}.b-comedy{background:var(--amber-light);color:var(--amber-dark);}.b-bongo{background:var(--green-light);color:var(--green-dark);}.b-family{background:var(--purple-light);color:var(--purple-dark);}
+.b-moja{background:var(--coral-light);color:var(--coral-dark);}.b-tatu{background:var(--green-light);color:var(--green-dark);}.b-wiki{background:var(--amber-light);color:var(--amber-dark);}.b-mwezi{background:var(--purple-light);color:var(--purple-dark);}
+.b-pending{background:#332800;color:var(--gold);}.b-confirmed{background:var(--green-light);color:var(--green-dark);}.b-done{background:var(--surface2);color:var(--muted);}
+.list-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
+.list-item:last-child{border-bottom:none;}
+.list-main{flex:1;}
+.list-main strong{font-size:13px;display:block;color:var(--text);}
+.list-main span{font-size:11px;color:var(--muted);}
+.del-btn{background:none;border:none;color:#E24B4A;cursor:pointer;font-size:18px;padding:2px 6px;}
+.w-row{display:grid;grid-template-columns:24px 1fr 60px 55px 40px;gap:6px;align-items:center;padding:8px 4px;border-bottom:1px solid var(--border);font-size:12px;}
+.w-row:last-child{border-bottom:none;}
+.w-head{font-size:10px;color:var(--muted);font-weight:600;background:var(--surface2);border-radius:var(--radius-sm);padding:6px 4px;}
+.search-row{display:flex;gap:8px;margin-bottom:10px;}
+.search-row input{flex:1;}
+.search-row select{width:130px;}
+.prog-row{margin-bottom:10px;}
+.prog-label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;color:var(--text);}
+.prog-bar{height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;}
+.prog-fill{height:100%;background:var(--green);border-radius:4px;transition:width 0.3s;}
+.order-card{background:var(--surface2);border-radius:var(--radius);border:1px solid var(--border);padding:12px;margin-bottom:10px;}
+.order-card.pending{border-left:3px solid var(--gold);}
+.order-card.confirmed{border-left:3px solid var(--green);}
+.order-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.order-ref{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:1px;}
+.order-name{font-size:14px;font-weight:700;color:var(--text);}
+.order-movies{font-size:12px;color:var(--muted);margin:4px 0;}
+.order-notes{font-size:11px;color:var(--gold);background:#1a1200;border-radius:6px;padding:5px 8px;margin-top:4px;line-height:1.5;}
+.order-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+.order-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}
+.member-card{border-radius:16px;padding:1.25rem;background:linear-gradient(135deg,#1a1200,#2a1800);border:1px solid #3a2800;position:relative;overflow:hidden;margin-bottom:12px;}
+.mc-brand{font-size:14px;font-weight:800;background:linear-gradient(90deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:1px;}
+.mc-name{font-size:18px;font-weight:700;color:var(--text);margin:10px 0 4px;}
+.mc-id{font-size:11px;color:var(--muted);letter-spacing:2px;}
+.mc-tier{display:inline-block;font-size:10px;padding:3px 10px;border-radius:20px;margin-top:8px;}
+.mc-tier.bronze{background:#3a2000;color:#CD7F32;}.mc-tier.silver{background:#252525;color:#C0C0C0;}.mc-tier.gold{background:#332800;color:var(--gold);}
+.mc-stats{display:flex;gap:16px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,215,0,0.1);}
+.mc-stat{font-size:11px;color:var(--muted);}
+.mc-stat strong{display:block;font-size:15px;color:var(--text);}
+.mc-points{position:absolute;top:1rem;right:1rem;text-align:right;}
+.mc-points span{font-size:20px;font-weight:700;color:var(--gold);}
+.mc-points small{display:block;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.poster-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;}
+.poster-card{border-radius:var(--radius-sm);overflow:hidden;background:var(--surface2);border:1px solid var(--border);}
+.poster-img-ph{width:100%;height:130px;display:flex;align-items:center;justify-content:center;font-size:38px;background:linear-gradient(135deg,#1a1a1a,#2a2a2a);}
+.poster-info{padding:6px 8px;}
+.poster-title{font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bell{display:none;background:#332800;border:1px solid var(--gold);border-radius:20px;padding:4px 10px;font-size:11px;color:var(--gold);cursor:pointer;margin-left:auto;}
+.empty{text-align:center;padding:2rem;color:var(--muted);font-size:13px;}
+.loading{text-align:center;padding:2rem;color:var(--muted);font-size:13px;animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--gold);color:#000;padding:10px 18px;border-radius:20px;font-size:13px;font-weight:600;z-index:999;white-space:nowrap;display:none;}
+</style>
+</head>
+<body>
+<div class="header">
+  <div><div class="logo">DMOVIES<span>Admin Panel</span></div></div>
+  <div id="bell-btn" class="bell" onclick="goOrders()">🔔 <span id="bell-count">0</span> Order Mpya</div>
+</div>
+<div class="tabs">
+  <button class="tab active" data-page="home" onclick="showPage('home',this)"><span class="tab-icon">🏠</span>Nyumbani</button>
+  <button class="tab" data-page="orders" onclick="showPage('orders',this)"><span class="tab-icon">📥</span>Orders<span class="tab-badge" id="orders-badge"></span></button>
+  <button class="tab" data-page="wateja" onclick="showPage('wateja',this)"><span class="tab-icon">👥</span>Wateja</button>
+  <button class="tab" data-page="movies" onclick="showPage('movies',this)"><span class="tab-icon">🎬</span>Movies</button>
+  <button class="tab" data-page="members" onclick="showPage('members',this)"><span class="tab-icon">💳</span>Members</button>
+  <button class="tab" data-page="hesabu" onclick="showPage('hesabu',this)"><span class="tab-icon">📊</span>Hesabu</button>
+</div>
 
+<!-- HOME -->
+<div class="page active" id="page-home">
+  <div class="stats" style="margin-top:1rem;" id="home-stats"><div class="stat"><div class="stat-num">—</div><div class="stat-lbl">Wateja leo</div></div><div class="stat"><div class="stat-num">—</div><div class="stat-lbl">Mapato</div></div><div class="stat"><div class="stat-num">—</div><div class="stat-lbl">Orders mpya</div></div></div>
+  <div class="card" id="pending-card" style="display:none;"><div class="card-title">🔔 Orders Zinazosubiri (<span id="pending-count">0</span>)</div><div id="pending-list"></div></div>
+  <div class="card">
+    <div class="card-title">⚡ Ongeza Mteja Haraka</div>
+    <div class="form-grid"><div><label>Jina</label><input id="h-jina" type="text" placeholder="Jina kamili"></div><div><label>Simu</label><input id="h-simu" type="tel" placeholder="0712 345 678"></div></div>
+    <div class="form-grid three">
+      <div><label>Pakiti</label><select id="h-pakiti"><option value="Moja">Moja 500</option><option value="Tatu" selected>Tatu 1,200</option><option value="Wiki">Wiki 3,000</option><option value="Mwezi">Mwezi 8,000</option></select></div>
+      <div><label>Malipo</label><select id="h-malipo"><option>M-Pesa</option><option>Airtel Money</option><option>Taslimu</option></select></div>
+      <div><label>Saa</label><select id="h-saa"><option>10:00 AM</option><option>2:00 PM</option><option>6:00 PM</option><option>8:00 PM</option></select></div>
+    </div>
+    <button class="btn btn-gold" onclick="addWateja('h')">✅ Ingiza Daftarini</button>
+  </div>
+  <div class="card"><div class="card-title">📋 Wateja wa Leo</div><div id="today-list"><div class="loading">Inapakia...</div></div></div>
+</div>
+
+<!-- ORDERS -->
+<div class="page" id="page-orders">
+  <div style="margin-top:1rem;">
+  <div class="stats" id="orders-stats"></div>
+  <div class="card">
+    <div class="card-title">📥 Orders za Wateja (<span id="orders-count">0</span>)</div>
+    <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+      <button class="btn btn-outline btn-sm" style="background:var(--surface2);" onclick="filterOrders('all',this)">Zote</button>
+      <button class="btn btn-outline btn-sm" onclick="filterOrders('pending',this)">⏳ Zinasubiri</button>
+      <button class="btn btn-outline btn-sm" onclick="filterOrders('confirmed',this)">✅ Zilizothibitishwa</button>
+      <button class="btn btn-outline btn-sm" onclick="filterOrders('done',this)">🏁 Zilizokamilika</button>
+    </div>
+    <div id="orders-list"><div class="loading">Inapakia...</div></div>
+  </div>
+  </div>
+</div>
+
+<!-- WATEJA -->
+<div class="page" id="page-wateja">
+  <div style="margin-top:1rem;">
+  <div class="card">
+    <div class="card-title">➕ Ongeza Mteja</div>
+    <div class="form-grid"><div><label>Jina</label><input id="w-jina" type="text" placeholder="Jina kamili"></div><div><label>Simu</label><input id="w-simu" type="tel" placeholder="Namba"></div></div>
+    <div class="form-grid three">
+      <div><label>Pakiti</label><select id="w-pakiti"><option value="Moja">Moja 500</option><option value="Tatu" selected>Tatu 1,200</option><option value="Wiki">Wiki 3,000</option><option value="Mwezi">Mwezi 8,000</option></select></div>
+      <div><label>Malipo</label><select id="w-malipo"><option>M-Pesa</option><option>Airtel Money</option><option>Taslimu</option></select></div>
+      <div><label>Saa</label><select id="w-saa"><option>10:00 AM</option><option>2:00 PM</option><option>6:00 PM</option><option>8:00 PM</option></select></div>
+    </div>
+    <button class="btn" onclick="addWateja('w')">Ongeza Mteja</button>
+  </div>
+  <div class="card">
+    <div class="card-title">👥 Orodha (<span id="w-count">0</span>)</div>
+    <div class="search-row"><input type="text" id="w-search" placeholder="Tafuta..." oninput="renderWateja()"><select id="w-filter-saa" onchange="renderWateja()"><option value="">Saa zote</option><option>10:00 AM</option><option>2:00 PM</option><option>6:00 PM</option><option>8:00 PM</option></select></div>
+    <div class="w-row w-head"><div>#</div><div>Jina / Pakiti</div><div>Saa</div><div>Malipo</div><div></div></div>
+    <div id="wateja-list"><div class="loading">Inapakia...</div></div>
+  </div>
+  </div>
+</div>
+
+<!-- MOVIES -->
+<div class="page" id="page-movies">
+  <div style="margin-top:1rem;">
+  <div class="card">
+    <div class="card-title">🎬 Ongeza Movie</div>
+    <div class="form-grid"><div><label>Jina</label><input id="m-title" type="text" placeholder="Jina la movie"></div><div><label>Mwaka</label><input id="m-year" type="number" placeholder="2024"></div></div>
+    <div class="form-grid three">
+      <div><label>Aina</label><select id="m-genre"><option value="Action">Action</option><option value="Romance">Romance</option><option value="Comedy">Comedy</option><option value="Bongo">Bongo</option><option value="Family">Family</option></select></div>
+      <div><label>Lugha</label><select id="m-lang"><option>Kiswahili</option><option>Kiingereza</option><option>Hindi</option></select></div>
+      <div><label>Emoji</label><select id="m-emoji"><option value="🎬">🎬</option><option value="💥">💥 Action</option><option value="❤️">❤️ Romance</option><option value="😂">😂 Comedy</option><option value="🇹🇿">🇹🇿 Bongo</option><option value="👨‍👩‍👧">👨‍👩‍👧 Family</option><option value="👻">👻 Horror</option><option value="🚀">🚀 Sci-Fi</option></select></div>
+    </div>
+    <button class="btn" onclick="addMovie()">Ongeza Movie</button>
+  </div>
+  <div class="card">
+    <div class="card-title">🎥 Movies Zote (<span id="m-count">0</span>)</div>
+    <div class="search-row"><input type="text" id="m-search" placeholder="Tafuta..." oninput="renderMovies()"><select id="m-filter" onchange="renderMovies()"><option value="">Zote</option><option value="Action">Action</option><option value="Romance">Romance</option><option value="Comedy">Comedy</option><option value="Bongo">Bongo</option><option value="Family">Family</option></select></div>
+    <div style="display:flex;gap:6px;margin-bottom:10px;"><button class="btn btn-outline btn-sm" onclick="setView('grid')">🖼️ Posters</button><button class="btn btn-outline btn-sm" onclick="setView('list')">📋 Orodha</button></div>
+    <div id="movies-list"><div class="loading">Inapakia...</div></div>
+  </div>
+  </div>
+</div>
+
+<!-- MEMBERS -->
+<div class="page" id="page-members">
+  <div style="margin-top:1rem;">
+  <div class="card">
+    <div class="card-title">💳 Unda Membership Card</div>
+    <div class="form-grid"><div><label>Jina</label><input id="mc-jina" type="text" placeholder="Jina kamili"></div><div><label>Simu</label><input id="mc-simu" type="tel" placeholder="0712 345 678"></div></div>
+    <div class="form-grid"><div><label>Membership</label><select id="mc-tier"><option value="bronze">🥉 Bronze</option><option value="silver">🥈 Silver</option><option value="gold">🥇 Gold VIP</option></select></div><div><label>Movies zilizotazamwa</label><input id="mc-movies" type="number" placeholder="0" min="0"></div></div>
+    <button class="btn btn-gold" onclick="addMember()">✨ Tengeneza Kadi</button>
+  </div>
+  <div id="members-display"><div class="loading">Inapakia...</div></div>
+  </div>
+</div>
+
+<!-- HESABU -->
+<div class="page" id="page-hesabu">
+  <div style="margin-top:1rem;">
+  <div class="stats" id="hesabu-stats"></div>
+  <div class="card"><div class="card-title">📊 Mgawanyo wa Packages</div><div id="pkg-breakdown"></div></div>
+  <div class="card"><div class="card-title">🕐 Mgawanyo wa Saa</div><div id="saa-breakdown"></div></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API='/api';
+const PRICES={Moja:500,Tatu:1200,Wiki:3000,Mwezi:8000};
+const PKG_CLASS={Moja:'b-moja',Tatu:'b-tatu',Wiki:'b-wiki',Mwezi:'b-mwezi'};
+const GENRE_CLASS={Action:'b-action',Romance:'b-romance',Comedy:'b-comedy',Bongo:'b-bongo',Family:'b-family'};
+const GENRE_EMOJI={Action:'💥',Romance:'❤️',Comedy:'😂',Bongo:'🇹🇿',Family:'👨‍👩‍👧'};
+const OWNER_WA='255712345678';
+let allMovies=[],allWateja=[],allMembers=[],allOrders=[];
+let orderFilter='all',movieView='grid',lastPending=0;
+
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',2500);}
+
+async function api(path,method='GET',body=null){
+  const opts={method,headers:{'Content-Type':'application/json'}};
+  if(body)opts.body=JSON.stringify(body);
+  const r=await fetch(API+path,opts);
+  return r.json();
+}
+
+function showPage(name,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='home')loadHome();
+  if(name==='orders'){loadOrders();document.getElementById('orders-badge').style.display='none';document.getElementById('bell-btn').style.display='none';}
+  if(name==='wateja')loadWateja();
+  if(name==='movies')loadMovies();
+  if(name==='members')loadMembers();
+  if(name==='hesabu')loadHesabu();
+}
+
+function goOrders(){document.querySelector('[data-page=orders]').click();}
+
+// ---- POLL ORDERS ----
+async function pollOrders(){
+  try{
+    const d=await api('/orders?status=pending');
+    const pending=d.orders||[];
+    if(pending.length>lastPending&&lastPending>=0){
+      showToast('🔔 Order mpya imefikia!');
+      document.getElementById('bell-btn').style.display='flex';
+      document.getElementById('bell-count').textContent=pending.length;
+      document.getElementById('orders-badge').textContent=pending.length;
+      document.getElementById('orders-badge').style.display='block';
+    }
+    lastPending=pending.length;
+  }catch(e){}
+}
+setInterval(pollOrders,8000);
+
+// ---- HOME ----
+async function loadHome(){
+  try{
+    const [wd,od]=await Promise.all([api('/members?type=wateja'),api('/orders')]);
+    allWateja=wd.wateja||[];
+    allOrders=od.orders||[];
+    const today=new Date().toLocaleDateString('sw');
+    const leo=allWateja.filter(w=>w.tarehe===today);
+    const mapato=leo.reduce((s,w)=>s+w.bei,0);
+    const pending=allOrders.filter(o=>o.status==='pending');
+    document.getElementById('home-stats').innerHTML=`
+      <div class="stat"><div class="stat-num">${leo.length}</div><div class="stat-lbl">Wateja leo</div></div>
+      <div class="stat"><div class="stat-num">${mapato.toLocaleString()}</div><div class="stat-lbl">Mapato (Tsh)</div></div>
+      <div class="stat"><div class="stat-num" style="color:${pending.length?'var(--gold)':'var(--gold)'};">${pending.length}</div><div class="stat-lbl">Orders mpya</div></div>`;
+    const pc=document.getElementById('pending-card');
+    if(pending.length){
+      pc.style.display='block';
+      document.getElementById('pending-count').textContent=pending.length;
+      document.getElementById('pending-list').innerHTML=pending.slice(0,3).map(o=>`
+        <div style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);">
+          <div style="flex:1;">
+            <div style="font-weight:600;font-size:13px;">${o.jina} <span style="color:var(--muted);font-weight:400;">· ${o.saa}</span></div>
+            <div style="font-size:11px;color:var(--muted);">${o.movies.map(m=>m.title).join(', ')}</div>
+            ${o.notes?`<div style="font-size:11px;color:var(--gold);margin-top:2px;">📝 ${o.notes}</div>`:''}
+          </div>
+          <button class="btn btn-sm" style="background:var(--green);flex-shrink:0;" onclick="confirmOrder('${o.ref}')">✅ Thibitisha</button>
+        </div>`).join('');
+    }else pc.style.display='none';
+    const tl=document.getElementById('today-list');
+    if(!leo.length){tl.innerHTML='<div class="empty">Bado hakuna mteja leo</div>';return;}
+    tl.innerHTML=leo.slice().reverse().map((w,i)=>`
+      <div class="list-item">
+        <div style="font-size:11px;color:var(--muted);min-width:20px;">${leo.length-i}</div>
+        <div class="list-main"><strong>${w.jina}</strong><span>${w.saa} · ${w.malipo}${w.simu?' · '+w.simu:''}</span></div>
+        <span class="badge ${PKG_CLASS[w.pakiti]||'b-moja'}">${w.pakiti}</span>
+        <span style="font-size:11px;color:var(--muted);margin-left:4px;">${(w.bei||0).toLocaleString()}</span>
+      </div>`).join('');
+  }catch(e){document.getElementById('today-list').innerHTML='<div class="empty">⚠️ Tatizo la mtandao</div>';}
+}
+
+// ---- ORDERS ----
+async function loadOrders(){
+  try{
+    const d=await api('/orders');
+    allOrders=d.orders||[];
+    renderOrders();
+  }catch(e){document.getElementById('orders-list').innerHTML='<div class="empty">⚠️ Tatizo la mtandao</div>';}
+}
+
+function renderOrders(){
+  const filtered=orderFilter==='all'?allOrders:allOrders.filter(o=>o.status===orderFilter);
+  const pending=allOrders.filter(o=>o.status==='pending').length;
+  const confirmed=allOrders.filter(o=>o.status==='confirmed').length;
+  const done=allOrders.filter(o=>o.status==='done').length;
+  document.getElementById('orders-count').textContent=allOrders.length;
+  document.getElementById('orders-stats').innerHTML=`
+    <div class="stat"><div class="stat-num" style="color:var(--gold);">${pending}</div><div class="stat-lbl">Zinasubiri</div></div>
+    <div class="stat"><div class="stat-num" style="color:var(--green);">${confirmed}</div><div class="stat-lbl">Zilizothibitishwa</div></div>
+    <div class="stat"><div class="stat-num">${done}</div><div class="stat-lbl">Zilizokamilika</div></div>`;
+  const el=document.getElementById('orders-list');
+  if(!filtered.length){el.innerHTML='<div class="empty">Hakuna orders</div>';return;}
+  el.innerHTML=filtered.map(o=>`
+    <div class="order-card ${o.status}">
+      <div class="order-header">
+        <div>
+          <div class="order-ref">#${o.ref} · ${o.wakati} · ${o.tarehe}</div>
+          <div class="order-name">${o.jina}</div>
+          <div class="order-movies">🎬 ${o.movies.map(m=>m.title).join(', ')}</div>
+          ${o.notes?`<div class="order-notes">📝 ${o.notes}</div>`:''}
+        </div>
+        <span class="badge b-${o.status}">${o.status==='pending'?'⏳ Inasubiri':o.status==='confirmed'?'✅ Imethibitishwa':'🏁 Imekamilika'}</span>
+      </div>
+      <div class="order-meta">
+        <span class="badge ${PKG_CLASS[o.pakiti]||'b-moja'}">${o.pakiti}</span>
+        <span style="font-size:11px;color:var(--muted);">🕐 ${o.saa}</span>
+        <span style="font-size:11px;color:var(--muted);">📱 ${o.simu}</span>
+        <span style="font-size:11px;color:var(--gold);">💰 ${(o.bei||0).toLocaleString()} Tsh</span>
+      </div>
+      <div class="order-actions">
+        ${o.status==='pending'?`<button class="btn btn-sm" style="background:var(--green);" onclick="updateOrderStatus('${o.ref}','confirmed')">✅ Thibitisha</button>`:''}
+        ${o.status==='confirmed'?`<button class="btn btn-sm" style="background:var(--purple);" onclick="updateOrderStatus('${o.ref}','done')">🏁 Kamilisha</button>`:''}
+        <button class="btn btn-sm btn-outline" onclick="waReply('${o.simu}','${o.jina}','${o.ref}','${o.saa}')">💬 WhatsApp</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteOrder('${o.ref}')">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+function filterOrders(f,btn){orderFilter=f;document.querySelectorAll('[onclick^="filterOrders"]').forEach(b=>b.style.background='var(--surface2)');btn.style.background='var(--surface)';renderOrders();}
+
+async function confirmOrder(ref){await updateOrderStatus(ref,'confirmed');loadHome();}
+
+async function updateOrderStatus(ref,status){
+  try{
+    await api('/orders','PUT',{ref,status});
+    showToast(status==='confirmed'?'✅ Imethibitishwa!':'🏁 Imekamilika!');
+    loadOrders();
+  }catch(e){showToast('⚠️ Tatizo. Jaribu tena.');}
+}
+
+async function deleteOrder(ref){
+  if(!confirm('Futa order hii?'))return;
+  await api('/orders?ref='+ref,'DELETE');
+  showToast('Order imefutwa');loadOrders();
+}
+
+function waReply(simu,jina,ref,saa){
+  const msg=`Habari ${jina}! 🎬\nOrder yako #${ref} imethibitishwa!\nFika saa ${saa} — tutakuhudumia haraka.\nAsante kwa kuchagua DMOVIES! 🍿`;
+  window.open(`https://wa.me/255${simu.replace(/^0/,'')}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+
+// ---- WATEJA ----
+async function addWateja(prefix){
+  const jina=document.getElementById(prefix+'-jina').value.trim();
+  if(!jina){showToast('⚠️ Weka jina');return;}
+  const now=new Date();
+  try{
+    await api('/members?type=wateja','POST',{
+      jina,simu:document.getElementById(prefix+'-simu').value.trim(),
+      pakiti:document.getElementById(prefix+'-pakiti').value,
+      malipo:document.getElementById(prefix+'-malipo').value,
+      saa:document.getElementById(prefix+'-saa').value,
+      bei:PRICES[document.getElementById(prefix+'-pakiti').value],
+      wakati:now.toLocaleTimeString('sw',{hour:'2-digit',minute:'2-digit'}),
+      tarehe:now.toLocaleDateString('sw'),
+    });
+    document.getElementById(prefix+'-jina').value='';
+    document.getElementById(prefix+'-simu').value='';
+    showToast('✅ '+jina+' ameingizwa!');
+    if(prefix==='w')loadWateja(); else loadHome();
+  }catch(e){showToast('⚠️ Tatizo. Jaribu tena.');}
+}
+
+async function loadWateja(){
+  try{
+    const d=await api('/members?type=wateja');
+    allWateja=d.wateja||[];
+    renderWateja();
+  }catch(e){document.getElementById('wateja-list').innerHTML='<div class="empty">⚠️ Tatizo la mtandao</div>';}
+}
+
+function renderWateja(){
+  const q=(document.getElementById('w-search')||{}).value?.toLowerCase()||'';
+  const saa=(document.getElementById('w-filter-saa')||{}).value||'';
+  const filtered=allWateja.filter(w=>(!q||w.jina.toLowerCase().includes(q))&&(!saa||w.saa===saa));
+  document.getElementById('w-count').textContent=allWateja.length;
+  const el=document.getElementById('wateja-list');
+  if(!filtered.length){el.innerHTML='<div class="empty">Hakuna mteja</div>';return;}
+  el.innerHTML=filtered.map((w,i)=>`
+    <div class="w-row"><div style="color:var(--muted);">${i+1}</div>
+      <div><strong style="font-size:12px;">${w.jina}</strong><br><span class="badge ${PKG_CLASS[w.pakiti]||'b-moja'}">${w.pakiti}</span></div>
+      <div style="font-size:11px;color:var(--muted);">${w.saa}</div>
+      <div style="font-size:11px;color:var(--muted);">${w.malipo}</div>
+      <button class="del-btn" onclick="deleteWateja('${w._id}')">×</button>
+    </div>`).join('');
+}
+
+async function deleteWateja(id){
+  await api('/members?type=wateja&id='+id,'DELETE');
+  loadWateja();
+}
+
+// ---- MOVIES ----
+async function loadMovies(){
+  try{
+    const d=await api('/movies');
+    allMovies=d.movies||[];
+    renderMovies();
+  }catch(e){document.getElementById('movies-list').innerHTML='<div class="empty">⚠️ Tatizo</div>';}
+}
+
+function setView(v){movieView=v;renderMovies();}
+
+async function addMovie(){
+  const title=document.getElementById('m-title').value.trim();
+  if(!title){showToast('⚠️ Weka jina');return;}
+  try{
+    await api('/movies','POST',{title,genre:document.getElementById('m-genre').value,year:parseInt(document.getElementById('m-year').value)||2024,lang:document.getElementById('m-lang').value,emoji:document.getElementById('m-emoji').value});
+    document.getElementById('m-title').value='';
+    showToast('🎬 Imeongezwa!');loadMovies();
+  }catch(e){showToast('⚠️ Tatizo. Jaribu tena.');}
+}
+
+async function deleteMovie(id){
+  await api('/movies?id='+id,'DELETE');
+  showToast('Movie imefutwa');loadMovies();
+}
+
+function renderMovies(){
+  const q=(document.getElementById('m-search')||{}).value?.toLowerCase()||'';
+  const genre=(document.getElementById('m-filter')||{}).value||'';
+  const filtered=allMovies.filter(m=>(!q||m.title.toLowerCase().includes(q))&&(!genre||m.genre===genre));
+  document.getElementById('m-count').textContent=allMovies.length;
+  const el=document.getElementById('movies-list');
+  if(!filtered.length){el.innerHTML='<div class="empty">Hakuna movie</div>';return;}
+  if(movieView==='grid'){
+    el.innerHTML=`<div class="poster-grid">${filtered.map(m=>`
+      <div class="poster-card"><div class="poster-img-ph">${m.emoji||'🎬'}</div>
+        <div class="poster-info"><div class="poster-title">${m.title}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:10px;color:var(--muted);">${m.year}</span>
+            <button class="del-btn" onclick="deleteMovie('${m._id}')" style="font-size:13px;padding:0;">×</button>
+          </div><span class="badge ${GENRE_CLASS[m.genre]||'b-action'}" style="margin-top:3px;">${m.genre}</span>
+        </div></div>`).join('')}</div>`;
+  }else{
+    el.innerHTML=filtered.map((m,i)=>`
+      <div class="list-item"><div style="font-size:11px;color:var(--muted);min-width:20px;">${i+1}</div>
+        <div style="font-size:18px;">${m.emoji||'🎬'}</div>
+        <div class="list-main"><strong>${m.title}</strong><span>${m.year}</span></div>
+        <span class="badge ${GENRE_CLASS[m.genre]||'b-action'}">${m.genre}</span>
+        <button class="del-btn" onclick="deleteMovie('${m._id}')">×</button>
+      </div>`).join('');
+  }
+}
+
+// ---- MEMBERS ----
+async function loadMembers(){
+  try{
+    const d=await api('/members');
+    allMembers=d.members||[];
+    renderMembers();
+  }catch(e){document.getElementById('members-display').innerHTML='<div class="empty">⚠️ Tatizo</div>';}
+}
+
+async function addMember(){
+  const jina=document.getElementById('mc-jina').value.trim();
+  if(!jina){showToast('⚠️ Weka jina');return;}
+  try{
+    await api('/members','POST',{jina,simu:document.getElementById('mc-simu').value.trim(),tier:document.getElementById('mc-tier').value,movies:parseInt(document.getElementById('mc-movies').value)||0});
+    document.getElementById('mc-jina').value='';document.getElementById('mc-simu').value='';
+    showToast('💳 Kadi imeundwa!');loadMembers();
+  }catch(e){showToast('⚠️ Tatizo. Jaribu tena.');}
+}
+
+async function deleteMember(id){
+  await api('/members?id='+id,'DELETE');
+  showToast('Member amefutwa');loadMembers();
+}
+
+function getTier(n){return n>=50?'gold':n>=20?'silver':'bronze';}
+function getTierLabel(t){return{bronze:'🥉 Bronze',silver:'🥈 Silver',gold:'🥇 Gold VIP'}[t]||'Bronze';}
+
+function renderMembers(){
+  const el=document.getElementById('members-display');
+  if(!allMembers.length){el.innerHTML='<div class="empty" style="margin-bottom:12px;">Unda member wa kwanza! 💳</div>';return;}
+  el.innerHTML=allMembers.map(m=>`
+    <div class="member-card">
+      <div style="display:flex;justify-content:space-between;"><div class="mc-brand">DMOVIES</div>
+        <div class="mc-points"><span>${m.points||0}</span><small>Points</small></div></div>
+      <div class="mc-name">${m.jina}</div>
+      <div class="mc-id">${m.memberId||'—'}${m.simu?' · '+m.simu:''}</div>
+      <div class="mc-tier ${getTier(m.movies)}">${getTierLabel(getTier(m.movies))}</div>
+      <div class="mc-stats"><div class="mc-stat"><strong>${m.movies||0}</strong>Movies</div><div class="mc-stat"><strong>${m.points||0}</strong>Points</div></div>
+      <button class="del-btn" onclick="deleteMember('${m._id}')" style="position:absolute;top:10px;right:10px;">×</button>
+    </div>`).join('');
+}
+
+// ---- HESABU ----
+async function loadHesabu(){
+  try{
+    const [wd,od]=await Promise.all([api('/members?type=wateja'),api('/orders')]);
+    const wateja=wd.wateja||[];
+    const orders=od.orders||[];
+    const today=new Date().toLocaleDateString('sw');
+    const leo=wateja.filter(w=>w.tarehe===today);
+    const mapato=leo.reduce((s,w)=>s+w.bei,0);
+    const wote=wateja.reduce((s,w)=>s+w.bei,0);
+    document.getElementById('hesabu-stats').innerHTML=`
+      <div class="stat"><div class="stat-num">${leo.length}</div><div class="stat-lbl">Wateja leo</div></div>
+      <div class="stat"><div class="stat-num">${mapato.toLocaleString()}</div><div class="stat-lbl">Leo (Tsh)</div></div>
+      <div class="stat"><div class="stat-num">${wote.toLocaleString()}</div><div class="stat-lbl">Jumla (Tsh)</div></div>`;
+    const counts={};leo.forEach(w=>counts[w.pakiti]=(counts[w.pakiti]||0)+1);
+    const bd=document.getElementById('pkg-breakdown');
+    const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+    if(!sorted.length){bd.innerHTML='<div class="empty">Bado hakuna data</div>';}
+    else bd.innerHTML=sorted.map(([p,c])=>`<div class="prog-row"><div class="prog-label"><span><span class="badge ${PKG_CLASS[p]||'b-moja'}">${p}</span></span><span style="font-size:12px;color:var(--muted);">${c} · ${(c*PRICES[p]).toLocaleString()} Tsh</span></div><div class="prog-bar"><div class="prog-fill" style="width:${leo.length?Math.round(c/leo.length*100):0}%"></div></div></div>`).join('');
+    const sc={};leo.forEach(w=>sc[w.saa]=(sc[w.saa]||0)+1);
+    const sbd=document.getElementById('saa-breakdown');
+    const ss=Object.entries(sc).sort((a,b)=>b[1]-a[1]);
+    if(!ss.length){sbd.innerHTML='<div class="empty">Bado hakuna data</div>';}
+    else sbd.innerHTML=ss.map(([s,c])=>`<div class="prog-row"><div class="prog-label"><span style="font-weight:500;">${s}</span><span style="font-size:12px;color:var(--muted);">${c} wateja</span></div><div class="prog-bar"><div class="prog-fill" style="width:${leo.length?Math.round(c/leo.length*100):0}%;background:var(--purple);"></div></div></div>`).join('');
+  }catch(e){}
+}
+
+loadHome();
+pollOrders();
+</script>
+</body>
+</html>
