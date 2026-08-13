@@ -1,27 +1,10 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/**/*.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "public/**",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    },
-    {
-      "src": "/admin",
-      "dest": "/public/admin.html"
-    },
-    {
-      "src": "/",
-      "dest": "/public/customer.html"
-    }
+  "rewrites": [
+    { "source": "/api/orders", "destination": "/api/orders.js" },
+    { "source": "/api/movies", "destination": "/api/movies.js" },
+    { "source": "/api/members", "destination": "/api/members.js" },
+    { "source": "/admin", "destination": "/public/admin.html" },
+    { "source": "/", "destination": "/public/customer.html" }
   ]
 }
